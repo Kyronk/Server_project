@@ -1,0 +1,37 @@
+const express = require("express");
+const app = express();
+
+//use cors
+const cors = require("cors");
+app.use(cors());
+
+// use dotenv
+const dotenv = require("dotenv");
+dotenv.config();
+
+// connect mongo db
+const mongoose = require("mongoose");
+mongoose.connect(
+  process.env.DB_CONNECTION_PRODUCT,
+  { useNewUrlParser: true, useUnifiedTopology: true },
+  () => console.log("connect to db!")
+);
+
+// import routes
+const customerRoute = require("./routes/customer");
+const adminRoute = require("./routes/admin");
+const bookingRoute = require("./routes/booking");
+//middleware
+app.use(express.json());
+
+//route middleware
+app.use("/api/admin", adminRoute);
+app.use("/api/customer", customerRoute);
+app.use("/api/booking",bookingRoute);
+
+//get request check connection server
+app.get("/", (req, res) => {
+  res.send("hello world");
+});
+
+app.listen(process.env.PORT, () => console.log("server started"));
