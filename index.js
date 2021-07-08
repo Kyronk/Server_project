@@ -1,5 +1,7 @@
 const express = require("express");
 const app = express();
+//middleware
+app.use(express.json());
 
 //use cors
 const cors = require("cors");
@@ -11,23 +13,21 @@ dotenv.config();
 
 // connect mongo db
 const mongoose = require("mongoose");
-mongoose.connect(
-  process.env.DB_CONNECTION_PRODUCT,
-  { useNewUrlParser: true, useUnifiedTopology: true },
-  () => console.log("connect to db!")
+mongoose.connect(process.env.DB_CONNECTION_PRODUCT, { useNewUrlParser: true, useUnifiedTopology: true }, () =>
+  console.log("connect to db!")
 );
 
 // import routes
 const customerRoute = require("./routes/customer");
 const adminRoute = require("./routes/admin");
 const bookingRoute = require("./routes/booking");
-//middleware
-app.use(express.json());
+const authRoute = require("./routes/auth");
 
 //route middleware
 app.use("/api/admin", adminRoute);
 app.use("/api/customer", customerRoute);
-app.use("/api/booking",bookingRoute);
+app.use("/api/booking", bookingRoute);
+app.use("/api/auth", authRoute);
 
 //get request check connection server
 app.get("/", (req, res) => {

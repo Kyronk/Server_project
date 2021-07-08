@@ -35,28 +35,6 @@ exports.register = async function (req, res) {
   }
 };
 
-// Login Customer
-
-exports.login = async function (req, res) {
-  try {
-    const { username, password } = req.body;
-    const account = await Customer.findOne(
-      { username, password },
-      { firstName: 1, lastName: 1, email: 1 }
-    );
-    if(!account) {
-      return res.status(400).json("incorrect username or password")
-    } 
-
-    const token = await jwt.sign({ user: account }, process.env.SECRET_KEY, {
-      expiresIn: "30d",
-    });
-
-    res.status(200).send({ message: "login success", token });
-  } catch (error) {
-    res.status(400).send({ message: "exception login", error });
-  }
-};
 
 // Get Customer
 // exports.getAllCustomer = async (req, res) => {
