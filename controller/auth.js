@@ -9,12 +9,12 @@ exports.adminLogin = async function (req, res) {
   try {
     const { username, password } = req.body;
     if (!username || !password) {
-      return res.status(500).json({ success: false, message: "Missing username or password" });
+      return res.status(500).send({ success: false, message: "Missing username or password" });
     }
 
     const admin = await Admin.findOne({ username, password }, { username: 1 });
     if (_.isNil(admin)) {
-      return res.status(500).json({ success: false, message: "Incorrect username or password" });
+      return res.status(500).send({ success: false, message: "Incorrect username or password" });
     }
     const authData = {
       _id: admin._id,
@@ -37,27 +37,29 @@ exports.customerLogin = async function (req, res) {
   try {
     const { username, password } = req.body;
     if (!username || !password) {
-      return res.status(500).json({ success: false, message: "Missing username or password" });
+      return res.status(500).send({ success: false, message: "Vui lòng điền đầy đủ thông tin" });
     }
 
-    const account = await Customer.findOne({ username, password }, { firstName: 1, lastName: 1, email: 1 });
+    const account = await Customer.findOne({ username, password });
 
     if (_.isNil(account)) {
-      return res.status(500).json("incorrect username or password");
+      return res.status(500).send({ success: false, message: "Số điện thoại hoặc mật khẩu không chính xác" });
     }
     const authData = {
       _id: account._id,
       username: account.username,
-      firstName: account.firstName,
-      lastName: account.lastName,
+      name: account.name,
       email: account.email,
+      dob: account.dob,
+      gender: account.gender,
+      address: account.address,
     };
     const token = await jwt.sign(authData, process.env.SECRET_KEY, {
       expiresIn: "30d",
     });
 
-    res.status(200).send({ message: "login success", token });
+    return res.status(200).send({ success: true, message: "Đăng nhập thành công", token });
   } catch (error) {
-    res.status(400).send({ message: "exception login", error });
+    return res.status(400).send({ message: "Lỗi , vui lòng thử lại sau", error, success: false });
   }
 };

@@ -1,13 +1,13 @@
 const Admin = require("../model/Admin");
 const Customer = require("../model/Customer");
-const jwt = require("jsonwebtoken");
 
 exports.register = async function (req, res) {
-  const { username, password } = req.body;
+  const { username, password, name } = req.body;
   try {
     const admin = new Admin({
       username,
       password,
+      name,
     });
     await admin.save();
     return res.status(200).send({ message: "Admin Create success" });

@@ -14,14 +14,11 @@ const CustomerSchema = new mongoose.Schema(
       min: 8,
       max: 1024,
     },
-    firstName: {
-      type: String,
-    },
-    lastName: {
+    name: {
       type: String,
     },
     gender: {
-      type: Boolean,
+      type: String,
     },
     dob: {
       type: Date,
@@ -37,14 +34,6 @@ const CustomerSchema = new mongoose.Schema(
     },
     email: {
       type: String,
-    },
-    medicalRecordDocument: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "MedicalRecordDocument",
-    },
-    booking: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "Booking",
     },
   },
   { timestamps: true }

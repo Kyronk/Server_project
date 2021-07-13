@@ -1,40 +1,37 @@
 const Customer = require("../model/Customer");
-const jwt = require("jsonwebtoken");
-
+const Document = require("../model/Document");
+const _ = require("lodash");
 // Register Customer
 exports.register = async function (req, res) {
-  const { username, password, firstName, lastName, email } = req.body;
-  if (!username || !password)
-    return res
-      .status(400)
-      .json({ success: false, message: "Missing username or password" });
-  
+  const { username, password, name, email, gender, dob, address, cfpwd } = req.body;
+  if (_.isNil(username) || _.isNil(password) || _.isNil(cfpwd) || _.isNil(name) || _.isNil(email) || _.isNil(address))
+    return res.status(500).send({ success: false, message: "Vui lòng điền đầy đủ tất cả thông tin" });
+
   try {
     const user = await Customer.findOne({ username });
-    if (user)
-      return res
-        .status(400)
-        .json({ success: false, message: "Username already taken" });
-
+    if (!_.isNil(user) || !_.isEmpty(user)) {
+      return res.status(500).send({ success: false, message: "Số điện thoại đã được đăng ký" });
+    }
     const newUser = new Customer({
       username,
       password,
-      firstName,
-      lastName,
+      name,
       email,
+      gender,
+      address,
+      dob,
     });
-    await newUser.save();
-
-
-    res.json({
-      success: true,
-      message: "user created successfully",
-    });
+    const result = await newUser.save();
+    if (result) {
+      return res.status(200).send({
+        success: true,
+        message: "Đăng ký thành công",
+      });
+    }
   } catch (error) {
-    return res.status(400).send({ message: "Create Customer fail", error });
+    return res.status(400).send({ message: "Lỗi , vui lòng thử lại sau", error, success: false });
   }
 };
-
 
 // Get Customer
 // exports.getAllCustomer = async (req, res) => {
@@ -45,6 +42,3 @@ exports.register = async function (req, res) {
 //     res.status(400).send({ message: "customer not found", error });
 //   }
 // };
-
-
-

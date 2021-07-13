@@ -11,6 +11,9 @@ const AdminSchema = new mongoose.Schema(
       min: 8,
       max: 1024,
     },
+    name: {
+      type: String,
+    },
   },
   { timestamps: true }
 );

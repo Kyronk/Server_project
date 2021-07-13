@@ -22,12 +22,14 @@ const customerRoute = require("./routes/customer");
 const adminRoute = require("./routes/admin");
 const bookingRoute = require("./routes/booking");
 const authRoute = require("./routes/auth");
+const recordRoute = require("./routes/record");
 
 //route middleware
 app.use("/api/admin", adminRoute);
 app.use("/api/customer", customerRoute);
 app.use("/api/booking", bookingRoute);
 app.use("/api/auth", authRoute);
+app.use("/api/record", recordRoute);
 
 //get request check connection server
 app.get("/", (req, res) => {

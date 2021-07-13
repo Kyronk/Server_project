@@ -15,8 +15,7 @@ verifyToken = (req, res, next) => {
       _id: decoded._id,
       isAdmin: decoded.isAdmin,
       username: decoded.username,
-      firstName: decoded.firstName,
-      lastName: decoded.lastName,
+      name: decoded.name,
       email: decoded.email,
     };
     next();

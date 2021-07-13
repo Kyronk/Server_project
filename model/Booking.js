@@ -8,9 +8,21 @@ const BookingSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: "Customer",
     },
-    bookingDate: {
+    date: {
       type: Date,
-      default: Date.now(),
+    },
+    name: {
+      
+      type: String,
+    },
+    phone: {
+      type: String,
+    },
+    address: {
+      type: String,
+    },
+    gender: {
+      type: String,
     },
     area: {
       type: mongoose.Schema.Types.ObjectId,
@@ -18,8 +30,8 @@ const BookingSchema = new mongoose.Schema(
     },
     status: {
       type: Number,
-      default: 0
-    }
+      default: 0,
+    },
   },
   { timestamps: true }
 );

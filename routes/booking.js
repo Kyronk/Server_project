@@ -6,6 +6,6 @@ const authVerify = require("../middleware/authVerify");
 
 //ROUTER POST
 router.post("/create", [authVerify.verifyToken], controller.create);
-router.get("/read", controller.getAllBooking);
+router.get("/history-booking", [authVerify.verifyToken], controller.getHistoryBooking);
 
 module.exports = router;

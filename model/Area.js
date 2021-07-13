@@ -15,4 +15,4 @@ const AreaSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-module.mongoose = mongoose.model("Area", AreaSchema);
+module.exports = mongoose.model("Area", AreaSchema);
