@@ -82,3 +82,45 @@ exports.updateProfile = (req, res) => {
     return res.status(400).send({ message: "Lỗi , vui lòng thử lại sau", error, success: false });
   }
 };
+
+exports.changePassword = (req, res) => {
+  try {
+    const { _id } = req.user;
+    const { newPwd, oldPwd } = req.body;
+
+    if (newPwd != oldPwd) {
+      return res.status(500).send({ message: "Xác nhận mật khẩu không khớp", success: false });
+    }
+    const filter = { _id };
+    const update = { password: newPwd };
+    Customer.findOne(filter, (err, customer) => {
+      if (err) {
+        return res.status(400).send({ message: "Lỗi , vui lòng thử lại sau", error, success: false });
+      }
+      if (!customer) {
+        return res.status(500).send({ message: "Không tìm thấy dữ liệu", error, success: false });
+      }
+      Customer.updateOne(filter, update, async (err) => {
+        if (err) {
+          return res.status(400).send({ message: "Lỗi , vui lòng thử lại sau", error, success: false });
+        }
+
+        const authData = {
+          _id: customer._id,
+          username: customer.username,
+          name: customer.name,
+          email: customer.email,
+          dob: customer.dob,
+          gender: customer.gender,
+          address: customer.address,
+        };
+        const token = await jwt.sign(authData, process.env.SECRET_KEY, {
+          expiresIn: "30d",
+        });
+        return res.status(200).send({ message: "Thay đổi mật khẩu thành công", success: true, token });
+      });
+    });
+  } catch (error) {
+    return res.status(400).send({ message: "Lỗi , vui lòng thử lại sau", error, success: false });
+  }
+};
