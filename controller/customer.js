@@ -1,5 +1,7 @@
 const Customer = require("../model/Customer");
-const Document = require("../model/Document");
+
+const jwt = require("jsonwebtoken");
+
 const _ = require("lodash");
 // Register Customer
 exports.register = async function (req, res) {
@@ -42,3 +44,41 @@ exports.register = async function (req, res) {
 //     res.status(400).send({ message: "customer not found", error });
 //   }
 // };
+
+exports.updateProfile = (req, res) => {
+  try {
+    const { _id } = req.user;
+    const { name, address, email } = req.body;
+    const filter = { _id };
+    const update = { name, address, email };
+    Customer.findOne(filter, (err, customer) => {
+      if (err) {
+        return res.status(400).send({ message: "Lỗi , vui lòng thử lại sau", error, success: false });
+      }
+      if (!customer) {
+        return res.status(500).send({ message: "Không tìm thấy dữ liệu", error, success: false });
+      }
+      Customer.updateOne(filter, update, async (err) => {
+        if (err) {
+          return res.status(400).send({ message: "Lỗi , vui lòng thử lại sau", error, success: false });
+        }
+
+        const authData = {
+          _id: customer._id,
+          username: customer.username,
+          name: _.isEmpty(name) || _.isNil(name) ? customer.name : name,
+          email: _.isEmpty(email) || _.isNil(email) ? customer.email : email,
+          dob: customer.dob,
+          gender: customer.gender,
+          address: _.isEmpty(address) || _.isNil(address) ? customer.address : address,
+        };
+        const token = await jwt.sign(authData, process.env.SECRET_KEY, {
+          expiresIn: "30d",
+        });
+        return res.status(200).send({ message: "Cập nhập thành công", success: true, token });
+      });
+    });
+  } catch (error) {
+    return res.status(400).send({ message: "Lỗi , vui lòng thử lại sau", error, success: false });
+  }
+};

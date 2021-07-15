@@ -1,5 +1,7 @@
 const express = require("express");
 const app = express();
+const http = require("http");
+const server = http.createServer(app);
 //middleware
 app.use(express.json());
 
@@ -36,4 +38,11 @@ app.get("/", (req, res) => {
   res.send("hello world");
 });
 
-app.listen(process.env.PORT, () => console.log("server started"));
+const io = require("socket.io")(server);
+server.listen(process.env.PORT, () => console.log("server started"));
+io.on("connection", (socket) => {
+  console.log("id connection", socket.id);
+});
+module.exports.socketEmit = function (value) {
+  io.emit("notification", value);
+};

@@ -6,6 +6,7 @@ const authVerify = require("../middleware/authVerify");
 
 // Route
 router.post("/register", controller.register);
+router.post("/update-profile", [authVerify.verifyToken], controller.updateProfile);
 
 // router.get("/list", [authVerify.verifyToken], controller.getAllCustomer);
 module.exports = router;
