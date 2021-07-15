@@ -100,6 +100,9 @@ exports.changePassword = (req, res) => {
       if (!customer) {
         return res.status(500).send({ message: "Không tìm thấy dữ liệu", error, success: false });
       }
+      if (newPwd != customer.password) {
+        return res.status(500).send({ message: "Mật khẩu cũ của bạn không chính xác", success: false });
+      }
       Customer.updateOne(filter, update, async (err) => {
         if (err) {
           return res.status(400).send({ message: "Lỗi , vui lòng thử lại sau", error, success: false });
