@@ -88,9 +88,6 @@ exports.changePassword = (req, res) => {
     const { _id } = req.user;
     const { newPwd, oldPwd } = req.body;
 
-    if (newPwd == oldPwd) {
-      return res.status(500).send({ message: "Mật khẩu của bạn đang được sử dụng", success: false });
-    }
     const filter = { _id };
     const update = { password: newPwd };
     Customer.findOne(filter, (err, customer) => {
@@ -100,8 +97,11 @@ exports.changePassword = (req, res) => {
       if (!customer) {
         return res.status(500).send({ message: "Không tìm thấy dữ liệu", error, success: false });
       }
-      if (newPwd != customer.password) {
+      if (oldPwd != customer.password) {
         return res.status(500).send({ message: "Mật khẩu cũ của bạn không chính xác", success: false });
+      }
+      if (newPwd == customer.password) {
+        return res.status(500).send({ message: "Mật khẩu của bạn đang được sử dụng", success: false });
       }
       Customer.updateOne(filter, update, async (err) => {
         if (err) {
