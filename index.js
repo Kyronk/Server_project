@@ -3,6 +3,7 @@ const app = express();
 const http = require("http");
 const server = http.createServer(app);
 //middleware
+app.use(express.static('public'))
 app.use(express.json());
 
 //use cors
@@ -15,8 +16,10 @@ dotenv.config();
 
 // connect mongo db
 const mongoose = require("mongoose");
-mongoose.connect(process.env.DB_CONNECTION_PRODUCT, { useNewUrlParser: true, useUnifiedTopology: true }, () =>
-  console.log("connect to db!")
+mongoose.connect(
+ process.env.DB_CONNECTION_PRODUCT,
+ { useNewUrlParser: true, useUnifiedTopology: true },
+ () => console.log("connect to db!")
 );
 
 // import routes
@@ -27,22 +30,25 @@ const authRoute = require("./routes/auth");
 const recordRoute = require("./routes/record");
 
 //route middleware
+
 app.use("/api/admin", adminRoute);
 app.use("/api/customer", customerRoute);
 app.use("/api/booking", bookingRoute);
 app.use("/api/auth", authRoute);
 app.use("/api/record", recordRoute);
 
+
 //get request check connection server
 app.get("/", (req, res) => {
-  res.send("hello world");
+ res.send("hello world");
 });
 
 const io = require("socket.io")(server);
-server.listen(process.env.PORT, () => console.log("server started"));
+const port = process.env.PORT;
+server.listen(port, () => console.log(`server started with port: ${port}`));
 io.on("connection", (socket) => {
-  console.log("id connection", socket.id);
+ console.log("id connection", socket.id);
 });
 module.exports.socketEmit = function (value) {
-  io.emit("notification", value);
+ io.emit("notification", value);
 };
