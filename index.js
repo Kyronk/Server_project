@@ -35,6 +35,8 @@ app.use("/api/booking", bookingRoute);
 app.use("/api/auth", authRoute);
 app.use("/api/record", recordRoute);
 
+app.use(express.static('public'))
+
 //get request check connection server
 app.get("/", (req, res) => {
  res.send("hello world");
