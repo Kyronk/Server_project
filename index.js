@@ -37,11 +37,6 @@ app.use("/api/booking", bookingRoute);
 app.use("/api/auth", authRoute);
 app.use("/api/record", recordRoute);
 
-app.get('/api', (req, res) => {
-  res.setHeader('Content-Type', 'text/html');
-  res.setHeader('Cache-Control', 's-max-age=1, stale-while-revalidate');
-  res.end(`Hello! Go to item`);
-});
 
 //get request check connection server
 app.get("/", (req, res) => {
