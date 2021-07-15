@@ -2,11 +2,29 @@ const Customer = require("../model/Customer");
 
 const jwt = require("jsonwebtoken");
 
+const { genarateOTP } = require("../utils/genarateOTP");
+
+const socketEmit = require("../index");
+
 const _ = require("lodash");
+
+const { sendPushNotification } = require("../services/pushNotification");
+
 // Register Customer
 exports.register = async function (req, res) {
-  const { username, password, name, email, gender, dob, address, cfpwd } = req.body;
-  if (_.isNil(username) || _.isNil(password) || _.isNil(cfpwd) || _.isNil(name) || _.isNil(email) || _.isNil(address))
+  const { data, expo_token } = req.body;
+  const { username, password, name, email, gender, dob, address, cfpwd, quest1, quest2, quest3 } = data;
+  if (
+    _.isNil(username) ||
+    _.isNil(password) ||
+    _.isNil(cfpwd) ||
+    _.isNil(name) ||
+    _.isNil(email) ||
+    _.isNil(address) ||
+    _.isNil(quest1) ||
+    _.isNil(quest2) ||
+    _.isNil(quest3)
+  )
     return res.status(500).send({ success: false, message: "Vui lòng điền đầy đủ tất cả thông tin" });
 
   try {
@@ -22,6 +40,10 @@ exports.register = async function (req, res) {
       gender,
       address,
       dob,
+      quest3,
+      quest2,
+      quest1,
+      expo_token,
     });
     const result = await newUser.save();
     if (result) {
@@ -53,14 +75,14 @@ exports.updateProfile = (req, res) => {
     const update = { name, address, email };
     Customer.findOne(filter, (err, customer) => {
       if (err) {
-        return res.status(400).send({ message: "Lỗi , vui lòng thử lại sau", error, success: false });
+        return res.status(400).send({ message: "Lỗi , vui lòng thử lại sau", success: false });
       }
       if (!customer) {
-        return res.status(500).send({ message: "Không tìm thấy dữ liệu", error, success: false });
+        return res.status(500).send({ message: "Không tìm thấy dữ liệu", success: false });
       }
       Customer.updateOne(filter, update, async (err) => {
         if (err) {
-          return res.status(400).send({ message: "Lỗi , vui lòng thử lại sau", error, success: false });
+          return res.status(400).send({ message: "Lỗi , vui lòng thử lại sau", success: false });
         }
 
         const authData = {
@@ -71,6 +93,7 @@ exports.updateProfile = (req, res) => {
           dob: customer.dob,
           gender: customer.gender,
           address: _.isEmpty(address) || _.isNil(address) ? customer.address : address,
+          expo_token: customer.expo_token,
         };
         const token = await jwt.sign(authData, process.env.SECRET_KEY, {
           expiresIn: "30d",
@@ -92,10 +115,10 @@ exports.changePassword = (req, res) => {
     const update = { password: newPwd };
     Customer.findOne(filter, (err, customer) => {
       if (err) {
-        return res.status(400).send({ message: "Lỗi , vui lòng thử lại sau", error, success: false });
+        return res.status(400).send({ message: "Lỗi , vui lòng thử lại sau", success: false });
       }
       if (!customer) {
-        return res.status(500).send({ message: "Không tìm thấy dữ liệu", error, success: false });
+        return res.status(500).send({ message: "Không tìm thấy dữ liệu", success: false });
       }
       if (oldPwd != customer.password) {
         return res.status(500).send({ message: "Mật khẩu cũ của bạn không chính xác", success: false });
@@ -105,7 +128,53 @@ exports.changePassword = (req, res) => {
       }
       Customer.updateOne(filter, update, async (err) => {
         if (err) {
-          return res.status(400).send({ message: "Lỗi , vui lòng thử lại sau", error, success: false });
+          return res.status(400).send({ message: "Lỗi , vui lòng thử lại sau", success: false });
+        }
+
+        const authData = {
+          _id: customer._id,
+          username: customer.username,
+          name: customer.name,
+          email: customer.email,
+          dob: customer.dob,
+          gender: customer.gender,
+          address: customer.address,
+          expo_token: customer.expo_token,
+        };
+        const token = await jwt.sign(authData, process.env.SECRET_KEY, {
+          expiresIn: "30d",
+        });
+        return res.status(200).send({ message: "Thay đổi mật khẩu thành công", success: true, token });
+      });
+    });
+  } catch (error) {
+    return res.status(400).send({ message: "Lỗi , vui lòng thử lại sau", error, success: false });
+  }
+};
+
+exports.forgotPassword = (req, res) => {
+  try {
+    const { question, user, expo_token } = req.body;
+
+    const filter = { username: user.phone };
+    const otp = genarateOTP();
+    const update = { otp: otp };
+    if (user.pwd != user.cfpwd) {
+      return res.status(500).send({ message: "Xác nhận mật khẩu không chính xác", success: false });
+    }
+    Customer.findOne(filter, (err, customer) => {
+      if (err) {
+        return res.status(400).send({ message: "Lỗi , vui lòng thử lại sau", success: false });
+      }
+      if (!customer) {
+        return res.status(500).send({ message: "Số điện thoại này chưa được đăng ký", success: false });
+      }
+      if (question.quest1 != customer.quest1 || question.quest2 != customer.quest2 || question.quest3 != customer.quest3) {
+        return res.status(500).send({ message: "Câu trả lời không chính xác", success: false });
+      }
+      Customer.updateOne(filter, update, async (err) => {
+        if (err) {
+          return res.status(400).send({ message: "Lỗi , vui lòng thử lại sau", success: false });
         }
 
         const authData = {
@@ -117,10 +186,51 @@ exports.changePassword = (req, res) => {
           gender: customer.gender,
           address: customer.address,
         };
+        const message = `OTP của bạn là ${otp.code} , không chia sẻ OTP này cho bất kì ai`;
         const token = await jwt.sign(authData, process.env.SECRET_KEY, {
-          expiresIn: "30d",
+          expiresIn: "5m",
         });
-        return res.status(200).send({ message: "Thay đổi mật khẩu thành công", success: true, token });
+        sendPushNotification(expo_token, message);
+        return res.status(200).send({ message: "Đã gửi OTP", success: true, token });
+      });
+    });
+  } catch (error) {
+    return res.status(400).send({ message: "Lỗi , vui lòng thử lại sau", error, success: false });
+  }
+};
+
+exports.verifyOTP = (req, res) => {
+  try {
+    const { _id } = req.user;
+    const { otp, pwd } = req.body;
+    const filter = { _id };
+    Customer.findOne(filter, (err, customer) => {
+      if (err) {
+        return res.status(400).send({ message: "Lỗi , vui lòng thử lại sau", success: false });
+      }
+      if (!customer) {
+        return res.status(500).send({ message: "Không tìm thấy dữ liệu", success: false });
+      }
+      const now = new Date();
+      if (now > customer.otp.expired) {
+        const update = { otp: { code: otp + "x" } };
+        Customer.updateOne(filter, update, async (err) => {
+          if (err) {
+            return res.status(400).send({ message: "Lỗi , vui lòng thử lại sau", success: false });
+          }
+          return res.status(500).send({ message: "OTP đã hết hạn", success: false });
+        });
+      }
+      if (customer.otp.code != otp) {
+        return res.status(500).send({ message: "OTP không chính xác", success: false });
+      }
+      const update = { otp: { code: otp + "x" }, password: pwd };
+      Customer.updateOne(filter, update, async (err) => {
+        if (err) {
+          return res.status(400).send({ message: "Lỗi , vui lòng thử lại sau", success: false });
+        }
+
+        return res.status(200).send({ message: "Đã khổi phục mật khẩu", success: true });
       });
     });
   } catch (error) {

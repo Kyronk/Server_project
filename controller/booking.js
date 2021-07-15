@@ -1,7 +1,7 @@
 const Booking = require("../model/Booking");
-
-const socketEmit = require("../index");
 const { dateformat, notification } = require("../utils/index");
+
+const { sendPushNotification } = require("../services/pushNotification");
 
 // create
 // @router Post api/post
@@ -52,32 +52,32 @@ exports.updateBooking = function (req, res) {
     const { bookingId, status } = req.body;
     const filter = { _id: bookingId };
     const update = { status: status };
-    Booking.findOne(filter, (err, booking) => {
-      if (err) {
-        return res.status(400).send({ message: "Lỗi , vui lòng thử lại sau", success: false });
-      }
-      if (!booking) {
-        return res.status(500).send({ message: "Không tìm thấy dữ liệu", success: false });
-      }
-
-      Booking.updateOne(filter, update, { new: true }, (err) => {
+    Booking.findOne(filter)
+      .populate("customer", { expo_token: 1 })
+      .exec((err, booking) => {
         if (err) {
           return res.status(400).send({ message: "Lỗi , vui lòng thử lại sau", success: false });
         }
-        const result = booking;
-        result.status = status;
-        let message = "";
-        if (status == 1) {
-          message = `Xin chào ${booking.name} , lịch khám lúc ${dateformat(booking.date)} đã được tiếp nhận`;
+        if (!booking) {
+          return res.status(500).send({ message: "Không tìm thấy dữ liệu", success: false });
         }
-        if (status == 2) {
-          message = `Xin chào ${booking.name} , lịch khám lúc ${dateformat(booking.date)} đã không được tiếp nhận`;
-        }
-        socketEmit.socketEmit(notification(message, result));
-
-        return res.send({ success: true, message: "Cập nhập thành công" });
+        Booking.updateOne(filter, update, { new: true }, (err) => {
+          if (err) {
+            return res.status(400).send({ message: "Lỗi , vui lòng thử lại sau", success: false });
+          }
+          const result = booking;
+          result.status = status;
+          let message = "";
+          if (status == 1) {
+            message = `Xin chào ${booking.name} , lịch khám lúc ${dateformat(booking.date)} đã được tiếp nhận`;
+          }
+          if (status == 2) {
+            message = `Xin chào ${booking.name} , lịch khám lúc ${dateformat(booking.date)} đã không được tiếp nhận`;
+          }
+          sendPushNotification(booking.customer.expo_token, message, result);
+          return res.send({ success: true, message: "Cập nhập thành công" });
+        });
       });
-    });
   } catch (error) {
     console.log(error);
     return res.status(400).send({ message: "Lỗi , vui lòng thử lại sau", success: false });

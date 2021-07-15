@@ -35,6 +35,26 @@ const CustomerSchema = new mongoose.Schema(
     email: {
       type: String,
     },
+    otp: {
+      code: {
+        type: String,
+      },
+      expired: {
+        type: Date,
+      },
+    },
+    quest1: {
+      type: String,
+    },
+    quest2: {
+      type: String,
+    },
+    quest3: {
+      type: String,
+    },
+    expo_token: {
+      type: String,
+    },
   },
   { timestamps: true }
 );

@@ -33,32 +33,57 @@ exports.adminLogin = async function (req, res) {
 
 //POST api/auth/customer-login
 // Login Customer
-exports.customerLogin = async function (req, res) {
+exports.customerLogin = function (req, res) {
   try {
-    const { username, password } = req.body;
+    const { data, expo_token } = req.body;
+    const { username, password } = data;
     if (!username || !password) {
       return res.status(500).send({ success: false, message: "Vui lòng điền đầy đủ thông tin" });
     }
 
-    const account = await Customer.findOne({ username, password });
+    Customer.findOne({ username, password }, async (err, account) => {
+      if (err) {
+        return res.status(400).send({ message: "Lỗi , vui lòng thử lại sau", success: false });
+      }
+      if (_.isNil(account)) {
+        return res.status(500).send({ success: false, message: "Số điện thoại hoặc mật khẩu không chính xác" });
+      }
+      Customer.updateOne({ _id: account._id }, { expo_token }, (err) => {
+        if (err) {
+          console.log(err);
+        }
+      });
 
-    if (_.isNil(account)) {
-      return res.status(500).send({ success: false, message: "Số điện thoại hoặc mật khẩu không chính xác" });
-    }
-    const authData = {
-      _id: account._id,
-      username: account.username,
-      name: account.name,
-      email: account.email,
-      dob: account.dob,
-      gender: account.gender,
-      address: account.address,
-    };
-    const token = await jwt.sign(authData, process.env.SECRET_KEY, {
-      expiresIn: "30d",
+      const authData = {
+        _id: account._id,
+        username: account.username,
+        name: account.name,
+        email: account.email,
+        dob: account.dob,
+        gender: account.gender,
+        address: account.address,
+        expo_token: account.expo_token,
+      };
+      const token = await jwt.sign(authData, process.env.SECRET_KEY, {
+        expiresIn: "30d",
+      });
+
+      return res.status(200).send({ success: true, message: "Đăng nhập thành công", token });
     });
+  } catch (error) {
+    return res.status(400).send({ message: "Lỗi , vui lòng thử lại sau", error, success: false });
+  }
+};
 
-    return res.status(200).send({ success: true, message: "Đăng nhập thành công", token });
+exports.customerLogout = function (req, res) {
+  try {
+    const { _id } = req.user;
+    Customer.updateOne({ _id }, { expo_token: "" }, (err) => {
+      if (err) {
+        return res.status(400).send({ message: "Lỗi , vui lòng thử lại sau", success: false });
+      }
+      return res.status(200).send({ success: true, message: "Đăng xuất thành công" });
+    });
   } catch (error) {
     return res.status(400).send({ message: "Lỗi , vui lòng thử lại sau", error, success: false });
   }
