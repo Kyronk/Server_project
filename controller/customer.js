@@ -88,8 +88,8 @@ exports.changePassword = (req, res) => {
     const { _id } = req.user;
     const { newPwd, oldPwd } = req.body;
 
-    if (newPwd != oldPwd) {
-      return res.status(500).send({ message: "Xác nhận mật khẩu không khớp", success: false });
+    if (newPwd == oldPwd) {
+      return res.status(500).send({ message: "Mật khẩu của bạn đang được sử dụng", success: false });
     }
     const filter = { _id };
     const update = { password: newPwd };
