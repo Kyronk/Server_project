@@ -3,6 +3,7 @@ const app = express();
 const http = require("http");
 const server = http.createServer(app);
 //middleware
+app.use(express.static('public'))
 app.use(express.json());
 
 //use cors
@@ -29,13 +30,18 @@ const authRoute = require("./routes/auth");
 const recordRoute = require("./routes/record");
 
 //route middleware
+
 app.use("/api/admin", adminRoute);
 app.use("/api/customer", customerRoute);
 app.use("/api/booking", bookingRoute);
 app.use("/api/auth", authRoute);
 app.use("/api/record", recordRoute);
 
-app.use(express.static('public'))
+app.get('/api', (req, res) => {
+  res.setHeader('Content-Type', 'text/html');
+  res.setHeader('Cache-Control', 's-max-age=1, stale-while-revalidate');
+  res.end(`Hello! Go to item`);
+});
 
 //get request check connection server
 app.get("/", (req, res) => {
