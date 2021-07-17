@@ -152,7 +152,7 @@ exports.changePassword = (req, res) => {
   }
 };
 
-exports.forgotPassword = async (req, res) => {
+exports.forgotPassword = (req, res) => {
   try {
     const { question, user, expo_token } = req.body;
 
@@ -162,7 +162,7 @@ exports.forgotPassword = async (req, res) => {
     if (user.pwd != user.cfpwd) {
       return res.status(500).send({ message: "Xác nhận mật khẩu không chính xác", success: false });
     }
-    await Customer.findOne(filter, async (err, customer) => {
+    Customer.findOne(filter, async (err, customer) => {
       if (err) {
         return res.status(400).send({ message: "Lỗi , vui lòng thử lại sau", success: false });
       }
@@ -175,7 +175,7 @@ exports.forgotPassword = async (req, res) => {
       const message = `OTP của bạn là ${otp.code} , không chia sẻ OTP này cho bất kì ai`;
       const notify = await sendPushNotification(expo_token, message, authData);
 
-      await Customer.updateOne(filter, update, async (err) => {
+      Customer.updateOne(filter, update, async (err) => {
         if (err) {
           return res.status(400).send({ message: "Lỗi , vui lòng thử lại sau", success: false });
         }
