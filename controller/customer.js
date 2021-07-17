@@ -187,10 +187,18 @@ exports.forgotPassword = (req, res) => {
           address: customer.address,
         };
         const message = `OTP của bạn là ${otp.code} , không chia sẻ OTP này cho bất kì ai`;
+        
         const token = await jwt.sign(authData, process.env.SECRET_KEY, {
           expiresIn: "5m",
         });
-        sendPushNotification(expo_token, message, authData);
+        sendPushNotification(expo_token, message, authData)
+          .then((response) => {
+            console.log("success", response.data);
+          })
+          .catch((error) => {
+            console.log("error", error.response.data);
+          });
+
         return res.status(200).send({ message: "Đã gửi OTP", success: true, token });
       });
     });

@@ -74,7 +74,6 @@ exports.updateBooking = function (req, res) {
           if (status == 2) {
             message = `Xin chào ${booking.name} , lịch khám lúc ${dateformat(booking.date)} đã không được tiếp nhận`;
           }
-          console.log("result", result);
           sendPushNotification(booking.customer.expo_token, message, result)
             .then((response) => {
               console.log("success", response.data);
