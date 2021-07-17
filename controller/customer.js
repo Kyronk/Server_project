@@ -152,7 +152,7 @@ exports.changePassword = (req, res) => {
   }
 };
 
-exports.forgotPassword = (req, res) => {
+exports.forgotPassword = async (req, res) => {
   try {
     const { question, user, expo_token } = req.body;
 
@@ -162,7 +162,7 @@ exports.forgotPassword = (req, res) => {
     if (user.pwd != user.cfpwd) {
       return res.status(500).send({ message: "Xác nhận mật khẩu không chính xác", success: false });
     }
-    Customer.findOne(filter, (err, customer) => {
+    await Customer.findOne(filter, async (err, customer) => {
       if (err) {
         return res.status(400).send({ message: "Lỗi , vui lòng thử lại sau", success: false });
       }
@@ -172,7 +172,7 @@ exports.forgotPassword = (req, res) => {
       if (question.quest1 != customer.quest1 || question.quest2 != customer.quest2 || question.quest3 != customer.quest3) {
         return res.status(500).send({ message: "Câu trả lời không chính xác", success: false });
       }
-      Customer.updateOne(filter, update, async (err) => {
+      await Customer.updateOne(filter, update, async (err) => {
         if (err) {
           return res.status(400).send({ message: "Lỗi , vui lòng thử lại sau", success: false });
         }
