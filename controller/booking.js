@@ -47,45 +47,35 @@ exports.getHistoryBooking = async function (req, res) {
 };
 
 //update
-exports.updateBooking = function (req, res) {
+exports.updateBooking = async function (req, res) {
   try {
     const { bookingId, status } = req.body;
     const filter = { _id: bookingId };
     const update = { status: status };
-    Booking.findOne(filter)
-      .populate("customer", { expo_token: 1 })
-      .exec((err, booking) => {
-        if (err) {
-          return res.status(400).send({ message: "Lỗi , vui lòng thử lại sau", success: false });
-        }
-        if (!booking) {
-          return res.status(500).send({ message: "Không tìm thấy dữ liệu", success: false });
-        }
-        Booking.updateOne(filter, update, { new: true }, (err) => {
-          if (err) {
-            return res.status(400).send({ message: "Lỗi , vui lòng thử lại sau", success: false });
-          }
-          let result = booking;
-          result.status = status;
-          let message = "";
-          if (status == 1) {
-            message = `Xin chào ${booking.name} , lịch khám lúc ${dateformat(booking.date)} đã được tiếp nhận`;
-          }
-          if (status == 2) {
-            message = `Xin chào ${booking.name} , lịch khám lúc ${dateformat(booking.date)} đã không được tiếp nhận`;
-          }
-          sendPushNotification(booking.customer.expo_token, message, result)
-            .then((response) => {
-              console.log("success", response.data);
-            })
-            .catch((error) => {
-              console.log("error", error.response.data);
-            });
-          return res.send({ success: true, message: "Cập nhập thành công" });
-        });
+    const booking = await Booking.findOne(filter).populate("customer", { expo_token: 1 });
+    if (!booking) {
+      return res.status(500).send({ message: "Không tìm thấy dữ liệu", success: false });
+    }
+    const updateBooking = Booking.findOneAndUpdate(filter, update, { new: true });
+
+    const result = booking;
+    result.status = status;
+    let message = "";
+    if (status == 1) {
+      message = `Xin chào ${booking.name} , lịch khám lúc ${dateformat(booking.date)} đã được tiếp nhận`;
+    }
+    if (status == 2) {
+      message = `Xin chào ${booking.name} , lịch khám lúc ${dateformat(booking.date)} đã không được tiếp nhận`;
+    }
+    sendPushNotification(booking.customer.expo_token, message, result)
+      .then((response) => {
+        console.log("success", response.data);
+      })
+      .catch((error) => {
+        console.log("error", error.response.data);
       });
+    return res.send({ success: true, message: "Cập nhập thành công" });
   } catch (error) {
-    console.log(error);
-    return res.status(400).send({ message: "Lỗi , vui lòng thử lại sau", success: false });
+    return res.status(400).send({ message: "Lỗi , vui lòng thử lại sau", error, success: false });
   }
 };
