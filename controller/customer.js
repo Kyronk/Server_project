@@ -172,11 +172,13 @@ exports.forgotPassword = async (req, res) => {
       if (question.quest1 != customer.quest1 || question.quest2 != customer.quest2 || question.quest3 != customer.quest3) {
         return res.status(500).send({ message: "Câu trả lời không chính xác", success: false });
       }
+      const message = `OTP của bạn là ${otp.code} , không chia sẻ OTP này cho bất kì ai`;
+      const notify = await sendPushNotification(expo_token, message, authData);
+
       await Customer.updateOne(filter, update, async (err) => {
         if (err) {
           return res.status(400).send({ message: "Lỗi , vui lòng thử lại sau", success: false });
         }
-
         const authData = {
           _id: customer._id,
           username: customer.username,
@@ -187,13 +189,10 @@ exports.forgotPassword = async (req, res) => {
           address: customer.address,
           expo_token: expo_token,
         };
-        const message = `OTP của bạn là ${otp.code} , không chia sẻ OTP này cho bất kì ai`;
-
         const token = await jwt.sign(authData, process.env.SECRET_KEY, {
-          expiresIn: "30m",
+          expiresIn: "30d",
         });
-        const notify = await sendPushNotification(expo_token, message, authData);
-        return res.status(200).send({ message: "Đã gửi OTP", success: true, token: token, notify });
+        res.status(200).send({ message: "Đã gửi OTP", success: true, token: token, notify });
       });
     });
   } catch (error) {
