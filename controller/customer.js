@@ -178,8 +178,8 @@ exports.forgotPassword = async (req, res) => {
       expiresIn: "30d",
     });
     const message = `OTP của bạn là ${otp.code} , không chia sẻ OTP này cho bất kì ai`;
-    const notify = await sendPushNotification(expo_token, message, customer);
-    return res.status(200).send({ message: "Đã gửi OTP", success: true, token: token, notify });
+    await sendPushNotification(expo_token, message, customer);
+    return res.status(200).send({ message: "Đã gửi OTP", success: true, token: token });
   } catch (error) {
     return res.status(400).send({ message: "Lỗi , vui lòng thử lại sau", error, success: false });
   }
