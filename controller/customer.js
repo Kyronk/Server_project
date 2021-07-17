@@ -185,9 +185,10 @@ exports.forgotPassword = (req, res) => {
           dob: customer.dob,
           gender: customer.gender,
           address: customer.address,
+          expo_token: expo_token,
         };
         const message = `OTP của bạn là ${otp.code} , không chia sẻ OTP này cho bất kì ai`;
-        
+
         const token = await jwt.sign(authData, process.env.SECRET_KEY, {
           expiresIn: "5m",
         });
