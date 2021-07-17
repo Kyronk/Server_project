@@ -162,19 +162,27 @@ exports.forgotPassword = async (req, res) => {
     if (user.pwd != user.cfpwd) {
       return res.status(500).send({ message: "Xác nhận mật khẩu không chính xác", success: false });
     }
-    const customer = await Customer.findOne(filter, { "-__v": 0, password: 0 });
+    const customer = await Customer.findOne(filter, "-__v -password");
     if (!customer) {
       return res.status(500).send({ message: "Số điện thoại này chưa được đăng ký", success: false });
     }
     if (question.quest1 != customer.quest1 || question.quest2 != customer.quest2 || question.quest3 != customer.quest3) {
       return res.status(500).send({ message: "Câu trả lời không chính xác", success: false });
     }
-    Customer.updateOne(filter, update, (err) => {
-      if (err) {
-        console.log(err);
-      }
+    await Customer.findOneAndUpdate(filter, update, {
+      new: true,
     });
-    const token = await jwt.sign(customer, process.env.SECRET_KEY, {
+    const authData = {
+      _id: customer._id,
+      username: customer.username,
+      name: customer.name,
+      email: customer.email,
+      dob: customer.dob,
+      gender: customer.gender,
+      address: customer.address,
+      expo_token: expo_token,
+    };
+    const token = await jwt.sign(authData, process.env.SECRET_KEY, {
       expiresIn: "30d",
     });
     const message = `OTP của bạn là ${otp.code} , không chia sẻ OTP này cho bất kì ai`;
