@@ -53,7 +53,6 @@ exports.updateBooking = async function (req, res) {
     const filter = { _id: bookingId };
     const update = { status: status };
     const booking = await Booking.findOne(filter).populate("customer", { expo_token: 1 });
-    console.log(booking);
     if (!booking) {
       return res.status(500).send({ message: "Không tìm thấy dữ liệu", success: false });
     }
@@ -70,6 +69,35 @@ exports.updateBooking = async function (req, res) {
     }
     await sendPushNotification(booking.customer.expo_token, message, result);
     return res.send({ success: true, message: "Cập nhập thành công" });
+  } catch (error) {
+    return res.status(400).send({ message: "Lỗi , vui lòng thử lại sau", error, success: false });
+  }
+};
+
+exports.getAllBooking = async (req, res) => {
+  try {
+    const perPage = 15;
+    const page = Math.max(0, +req.query.page);
+
+    Booking.find({ status: 0 })
+      .populate("customer", "name")
+      .limit(perPage)
+      .skip(perPage * (+page - 1))
+      .sort({ _id: -1 })
+      .exec(function (err, events) {
+        Booking.countDocuments().exec(function (err, count) {
+          totalPage = 1;
+          if (count / perPage > 1) {
+            totalPage = Math.round(count / perPage);
+          }
+          return res.status(200).send({
+            data: events,
+            page: page,
+            totalPage,
+            success: true,
+          });
+        });
+      });
   } catch (error) {
     return res.status(400).send({ message: "Lỗi , vui lòng thử lại sau", error, success: false });
   }

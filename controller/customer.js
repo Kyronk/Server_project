@@ -1,4 +1,5 @@
 const Customer = require("../model/Customer");
+const Booking = require("../model/Booking");
 
 const jwt = require("jsonwebtoken");
 
@@ -230,4 +231,65 @@ exports.verifyOTP = (req, res) => {
   } catch (error) {
     return res.status(400).send({ message: "Lỗi , vui lòng thử lại sau", error, success: false });
   }
+};
+
+exports.getAllCustomer = async (req, res) => {
+  try {
+    const perPage = 15;
+    const page = Math.max(0, +req.query.page);
+
+    Customer.find()
+      .limit(perPage)
+      .skip(perPage * (+page - 1))
+      .sort({ _id: -1 })
+      .exec(function (err, events) {
+        Customer.countDocuments().exec(function (err, count) {
+          totalPage = 1;
+          if (count / perPage > 1) {
+            totalPage = Math.round(count / perPage);
+          }
+          return res.status(200).send({
+            data: events,
+            page: page,
+            totalPage,
+            success: true,
+          });
+        });
+      });
+  } catch (error) {
+    return res.status(400).send({ message: "Lỗi , vui lòng thử lại sau", error, success: false });
+  }
+};
+
+exports.getBookingByCustomer = (req, res) => {
+  const perPage = 15;
+  const page = Math.max(0, +req.query.page);
+
+  const { id } = req.params;
+  Booking.find({ customer: id }, "-__v")
+    .limit(perPage)
+    .skip(perPage * (+page - 1))
+    .populate("doctor", { name: 1 })
+    .sort({ _id: -1 })
+
+    .exec((err, data) => {
+      if (err) {
+        return res.status(500).send({ message: "Lỗi , vui lòng thử lại sau", success: false });
+      }
+      if (!data) {
+        return res.status(500).send({ message: "Không tìm thấy dữ liệu", success: false });
+      }
+      Booking.countDocuments().exec(function (err, count) {
+        totalPage = 1;
+        if (count / perPage > 1) {
+          totalPage = Math.round(count / perPage);
+        }
+        return res.status(200).send({
+          data: data,
+          page: page,
+          totalPage,
+          success: true,
+        });
+      });
+    });
 };

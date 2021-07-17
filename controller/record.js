@@ -52,3 +52,36 @@ exports.getRecordByCustomer = (req, res) => {
       return res.status(200).send({ message: "Truy vấn thành công", success: true, data: record });
     });
 };
+
+exports.getRecordByCustomerId = (req, res) => {
+  const perPage = 15;
+  const page = Math.max(0, +req.query.page);
+
+  const { id } = req.params;
+  Record.find({ customer: id }, "-__v")
+    .limit(perPage)
+    .skip(perPage * (+page - 1))
+    .populate("doctor", { name: 1 })
+    .sort({ _id: -1 })
+
+    .exec((err, record) => {
+      if (err) {
+        return res.status(500).send({ message: "Lỗi , vui lòng thử lại sau", success: false });
+      }
+      if (!record) {
+        return res.status(500).send({ message: "Không tìm thấy dữ liệu", success: false });
+      }
+      Record.countDocuments().exec(function (err, count) {
+        totalPage = 1;
+        if (count / perPage > 1) {
+          totalPage = Math.round(count / perPage);
+        }
+        return res.status(200).send({
+          data: record,
+          page: page,
+          totalPage,
+          success: true,
+        });
+      });
+    });
+};

@@ -9,12 +9,12 @@ exports.adminLogin = async function (req, res) {
   try {
     const { username, password } = req.body;
     if (!username || !password) {
-      return res.status(500).send({ success: false, message: "Missing username or password" });
+      return res.status(500).send({ success: false, message: "Vui lòng nhập đầy đủ các trường" });
     }
 
     const admin = await Admin.findOne({ username, password }, { username: 1 });
     if (_.isNil(admin)) {
-      return res.status(500).send({ success: false, message: "Incorrect username or password" });
+      return res.status(500).send({ success: false, message: "Số điện thoại hoặc mật khẩu không chính xác" });
     }
     const authData = {
       _id: admin._id,
@@ -25,9 +25,9 @@ exports.adminLogin = async function (req, res) {
       expiresIn: "30d",
     });
 
-    res.status(200).send({ message: "login success", token });
+    res.status(200).send({ message: "Đăng nhập thành công", token, success: true });
   } catch (error) {
-    res.status(400).send({ message: "exception login", error });
+    res.status(400).send({ message: "Lỗi , vui lòng thử lại sau", error, success: false });
   }
 };
 
