@@ -53,10 +53,11 @@ exports.updateBooking = async function (req, res) {
     const filter = { _id: bookingId };
     const update = { status: status };
     const booking = await Booking.findOne(filter).populate("customer", { expo_token: 1 });
+    console.log(booking);
     if (!booking) {
       return res.status(500).send({ message: "Không tìm thấy dữ liệu", success: false });
     }
-    const updateBooking = Booking.findOneAndUpdate(filter, update, { new: true });
+    const updateBooking = await Booking.findOneAndUpdate(filter, update, { new: true });
 
     const result = booking;
     result.status = status;
