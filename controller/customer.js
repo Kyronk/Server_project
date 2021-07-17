@@ -172,28 +172,28 @@ exports.forgotPassword = (req, res) => {
       if (question.quest1 != customer.quest1 || question.quest2 != customer.quest2 || question.quest3 != customer.quest3) {
         return res.status(500).send({ message: "Câu trả lời không chính xác", success: false });
       }
-      const message = `OTP của bạn là ${otp.code} , không chia sẻ OTP này cho bất kì ai`;
-      const notify = await sendPushNotification(expo_token, message, authData);
 
       Customer.updateOne(filter, update, async (err) => {
         if (err) {
-          return res.status(400).send({ message: "Lỗi , vui lòng thử lại sau", success: false });
+          console.log(err);
         }
-        const authData = {
-          _id: customer._id,
-          username: customer.username,
-          name: customer.name,
-          email: customer.email,
-          dob: customer.dob,
-          gender: customer.gender,
-          address: customer.address,
-          expo_token: expo_token,
-        };
-        const token = await jwt.sign(authData, process.env.SECRET_KEY, {
-          expiresIn: "30d",
-        });
-        res.status(200).send({ message: "Đã gửi OTP", success: true, token: token, notify });
       });
+      const authData = {
+        _id: customer._id,
+        username: customer.username,
+        name: customer.name,
+        email: customer.email,
+        dob: customer.dob,
+        gender: customer.gender,
+        address: customer.address,
+        expo_token: expo_token,
+      };
+      const token = await jwt.sign(authData, process.env.SECRET_KEY, {
+        expiresIn: "30d",
+      });
+      const message = `OTP của bạn là ${otp.code} , không chia sẻ OTP này cho bất kì ai`;
+      const notify = await sendPushNotification(expo_token, message, authData);
+      res.status(200).send({ message: "Đã gửi OTP", success: true, token: token, notify });
     });
   } catch (error) {
     return res.status(400).send({ message: "Lỗi , vui lòng thử lại sau", error, success: false });
