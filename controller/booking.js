@@ -67,13 +67,7 @@ exports.updateBooking = async function (req, res) {
     if (status == 2) {
       message = `Xin chào ${booking.name} , lịch khám lúc ${dateformat(booking.date)} đã không được tiếp nhận`;
     }
-    sendPushNotification(booking.customer.expo_token, message, result)
-      .then((response) => {
-        console.log("success", response.data);
-      })
-      .catch((error) => {
-        console.log("error", error.response.data);
-      });
+    await sendPushNotification(booking.customer.expo_token, message, result);
     return res.send({ success: true, message: "Cập nhập thành công" });
   } catch (error) {
     return res.status(400).send({ message: "Lỗi , vui lòng thử lại sau", error, success: false });
