@@ -152,7 +152,7 @@ exports.changePassword = (req, res) => {
   }
 };
 
-exports.forgotPassword = (req, res) => {
+exports.forgotPassword = async (req, res) => {
   try {
     const { question, user, expo_token } = req.body;
 
@@ -162,39 +162,24 @@ exports.forgotPassword = (req, res) => {
     if (user.pwd != user.cfpwd) {
       return res.status(500).send({ message: "Xác nhận mật khẩu không chính xác", success: false });
     }
-    Customer.findOne(filter, async (err, customer) => {
+    const customer = await Customer.findOne(filter, { "-__v": 0, password: 0 });
+    if (!customer) {
+      return res.status(500).send({ message: "Số điện thoại này chưa được đăng ký", success: false });
+    }
+    if (question.quest1 != customer.quest1 || question.quest2 != customer.quest2 || question.quest3 != customer.quest3) {
+      return res.status(500).send({ message: "Câu trả lời không chính xác", success: false });
+    }
+    Customer.updateOne(filter, update, (err) => {
       if (err) {
-        return res.status(400).send({ message: "Lỗi , vui lòng thử lại sau", success: false });
+        console.log(err);
       }
-      if (!customer) {
-        return res.status(500).send({ message: "Số điện thoại này chưa được đăng ký", success: false });
-      }
-      if (question.quest1 != customer.quest1 || question.quest2 != customer.quest2 || question.quest3 != customer.quest3) {
-        return res.status(500).send({ message: "Câu trả lời không chính xác", success: false });
-      }
-
-      Customer.updateOne(filter, update, async (err) => {
-        if (err) {
-          console.log(err);
-        }
-      });
-      const authData = {
-        _id: customer._id,
-        username: customer.username,
-        name: customer.name,
-        email: customer.email,
-        dob: customer.dob,
-        gender: customer.gender,
-        address: customer.address,
-        expo_token: expo_token,
-      };
-      const token = await jwt.sign(authData, process.env.SECRET_KEY, {
-        expiresIn: "30d",
-      });
-      const message = `OTP của bạn là ${otp.code} , không chia sẻ OTP này cho bất kì ai`;
-      const notify = await sendPushNotification(expo_token, message, authData);
-      return res.status(200).send({ message: "Đã gửi OTP", success: true, token: token, notify });
     });
+    const token = await jwt.sign(customer, process.env.SECRET_KEY, {
+      expiresIn: "30d",
+    });
+    const message = `OTP của bạn là ${otp.code} , không chia sẻ OTP này cho bất kì ai`;
+    const notify = await sendPushNotification(expo_token, message, authData);
+    return res.status(200).send({ message: "Đã gửi OTP", success: true, token: token, notify });
   } catch (error) {
     return res.status(400).send({ message: "Lỗi , vui lòng thử lại sau", error, success: false });
   }
