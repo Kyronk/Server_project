@@ -190,7 +190,7 @@ exports.forgotPassword = (req, res) => {
         const token = await jwt.sign(authData, process.env.SECRET_KEY, {
           expiresIn: "5m",
         });
-        sendPushNotification(expo_token, message);
+        sendPushNotification(expo_token, message, authData);
         return res.status(200).send({ message: "Đã gửi OTP", success: true, token });
       });
     });

@@ -1,14 +1,23 @@
 const axios = require("axios");
 
-const EXPO_SERVER_URL = "https://exp.host/--/api/v2/push/send";
-
-exports.sendPushNotification = async (token, body, data = {}) => {
-  const message = {
+const EXPO_SERVER_URL = "https://fcm.googleapis.com/fcm/send";
+const config = {
+  headers: {
+    Authorization: `key=AAAAn27G_ZA:APA91bHsajjHn2JzqYxdXaV2fdamt1SQs-EiXMshnDHmuD1O5TocT8Ty-MzMP8tunHhybuZJD-agvoUf8WVb93diDfBfjAieCQYYSVYTWxK373gtkAPknyenJ97nieouNQJHJ-tDAyc-`,
+  },
+};
+exports.sendPushNotification = async (token, message, data) => {
+  const notiData = {
     to: token,
+    priority: "normal",
     sound: "default",
     title: "MT Hospital Booking",
-    body,
-    data,
+    data: {
+      experienceId: "@kingcooker/mt-hospital",
+      title: "MT Hospital Booking",
+      message: message,
+      body: data,
+    },
   };
-  return await axios.post(EXPO_SERVER_URL, message);
+  return await axios.post(EXPO_SERVER_URL, notiData, config);
 };

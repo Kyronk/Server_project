@@ -65,7 +65,7 @@ exports.updateBooking = function (req, res) {
           if (err) {
             return res.status(400).send({ message: "Lỗi , vui lòng thử lại sau", success: false });
           }
-          const result = booking;
+          let result = booking;
           result.status = status;
           let message = "";
           if (status == 1) {
@@ -74,7 +74,14 @@ exports.updateBooking = function (req, res) {
           if (status == 2) {
             message = `Xin chào ${booking.name} , lịch khám lúc ${dateformat(booking.date)} đã không được tiếp nhận`;
           }
-          sendPushNotification(booking.customer.expo_token, message, result);
+          console.log("result", result);
+          sendPushNotification(booking.customer.expo_token, message, result)
+            .then((response) => {
+              console.log("success", response.data);
+            })
+            .catch((error) => {
+              console.log("error", error.response.data);
+            });
           return res.send({ success: true, message: "Cập nhập thành công" });
         });
       });
