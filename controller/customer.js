@@ -1,5 +1,6 @@
 const Customer = require("../model/Customer");
 const Booking = require("../model/Booking");
+const Record = require("../model/Record");
 
 const jwt = require("jsonwebtoken");
 
@@ -269,7 +270,7 @@ exports.getBookingByCustomer = (req, res) => {
   Booking.find({ customer: id }, "-__v")
     .limit(perPage)
     .skip(perPage * (+page - 1))
-    .populate("doctor", { name: 1 })
+    .populate("customer", { name: 1, dob: 1 })
     .sort({ _id: -1 })
 
     .exec((err, data) => {
@@ -292,4 +293,29 @@ exports.getBookingByCustomer = (req, res) => {
         });
       });
     });
+};
+
+exports.getRecordBookingByCustomer = (req, res) => {
+  try {
+    const { id } = req.params;
+    Record.findOne({ customer: id }, "-__v")
+      .populate("doctor", { name: 1 })
+      .populate("customer", { name: 1, dob: 1 })
+      .sort({ _id: -1 })
+
+      .exec((err, data) => {
+        if (err) {
+          return res.status(500).send({ message: "Lỗi , vui lòng thử lại sau", err, success: false });
+        }
+        if (!data) {
+          return res.status(500).send({ message: "Không tìm thấy dữ liệu", success: false });
+        }
+        return res.status(200).send({
+          data: data,
+          success: true,
+        });
+      });
+  } catch (error) {
+    return res.status(500).send({ message: "Lỗi , vui lòng thử lại sau", error, success: false });
+  }
 };

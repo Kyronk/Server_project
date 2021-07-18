@@ -80,7 +80,7 @@ exports.getAllBooking = async (req, res) => {
     const page = Math.max(0, +req.query.page);
 
     Booking.find({ status: 0 })
-      .populate("customer", "name")
+      .populate("customer", "name dob")
       .limit(perPage)
       .skip(perPage * (+page - 1))
       .sort({ _id: -1 })

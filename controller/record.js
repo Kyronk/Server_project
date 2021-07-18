@@ -1,12 +1,13 @@
 const Record = require("../model/Record");
 const Customer = require("../model/Customer");
 const _ = require("lodash");
+const Booking = require("../model/Booking");
 
 exports.createRecord = async (req, res) => {
   try {
     const { _id } = req.user;
-    const { profile, description, reDate, booking } = req.body;
-    if (_.isEmpty(profile) || _.isEmpty(description) || _.isEmpty(reDate)) {
+    const { profile, description, reDate, booking, areaId } = req.body;
+    if (_.isEmpty(profile) || _.isEmpty(description) || _.isEmpty(reDate) || _.isEmpty(areaId)) {
       return res.status(400).send({ message: "Vui lòng nhập đầy đủ thông tin", success: false });
     }
     let profileId = profile._id;
@@ -24,10 +25,11 @@ exports.createRecord = async (req, res) => {
       doctor: _id,
       customer: profileId,
       reDate: reDate,
-      bookingDate: booking.date || new Date(),
+      bookingDate: booking.date,
+      area: areaId,
     });
     const result = await record.save();
-    console.log(result);
+    await Booking.findOneAndUpdate({ _id: booking._id }, { isActive: 1 });
     if (!_.isEmpty(result) && !_.isNil(result)) {
       return res.status(200).send({ message: "Quá trình khám kết thúc", success: true });
     }

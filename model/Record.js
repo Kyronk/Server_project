@@ -16,6 +16,10 @@ const medicalRecordSchema = new mongoose.Schema(
     bookingDate: {
       type: Date,
     },
+    area: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Area",
+    },
     reDate: {
       type: Date,
     },

@@ -12,7 +12,6 @@ const BookingSchema = new mongoose.Schema(
       type: Date,
     },
     name: {
-      
       type: String,
     },
     phone: {
@@ -29,6 +28,10 @@ const BookingSchema = new mongoose.Schema(
       ref: "Area",
     },
     status: {
+      type: Number,
+      default: 0,
+    },
+    isActive: {
       type: Number,
       default: 0,
     },
